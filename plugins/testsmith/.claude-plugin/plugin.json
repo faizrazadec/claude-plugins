@@ -1,0 +1,8 @@
+{
+  "name": "testsmith",
+  "description": "Write or extend automated tests for new/changed code. Discovers the repo's existing test stack, matches its conventions, and writes tests that fail when the logic breaks — never vacuous change-detectors.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Muhammad Faiz Raza"
+  }
+}
