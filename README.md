@@ -6,7 +6,7 @@ A personal Claude Code marketplace. Add it once, install its plugins on any mach
 
 ```bash
 # In any Claude Code session:
-/plugin marketplace add https://github.com/<you>/claude-plugins
+/plugin marketplace add https://github.com/faizrazadec/claude-plugins
 /plugin install testsmith@faiz-skills
 ```
 
