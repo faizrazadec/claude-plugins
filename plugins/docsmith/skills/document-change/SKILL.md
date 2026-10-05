@@ -12,7 +12,9 @@ change, in the repo's own conventions.
 
 Two modes:
 - **`setup`** gives a repo the docs and changelog structure when it has none (step 2).
-- **Default:** document the change in front of you (steps 1, 3, 4 and 5).
+- **Default:** document the change in front of you (steps 1, 3, 4 and 5). If the
+  change deserves an entry and the repo has no changelog yet, run step 2 first
+  and say so. Never set up a changelog for a change that doesn't need an entry.
 
 ## The rule that matters
 
@@ -29,8 +31,8 @@ substitute one for the other.
   sentence what changed for a user, an operator or a developer. If you can't,
   read more before writing anything.
 - Find where this repo already documents things. Look for `README.md` files,
-  `docs/`, `runbooks/`, `infra/README.md`, `CONTRIBUTING.md`, `CLAUDE.md` and
-  `AGENTS.md`, plus any index file. Follow what they say about documentation.
+  `docs/`, `runbooks/`, `infra/README.md`, `CONTRIBUTING.md`, `AGENTS.md` and
+  `CLAUDE.md` (often a symlink to `AGENTS.md`), plus any index file. Follow what they say about documentation.
   Their rules override this skill.
 - Find the existing changelog style:
   - a single `CHANGELOG.md` in Keep a Changelog style;
@@ -53,15 +55,53 @@ Copy these from this skill's `assets/` and adapt them:
 | `CHANGELOG.md` | repo root | Project name. If a `CHANGELOG.md` already exists, keep its history: link to it or move it into `changelog/archive/`, never delete it. |
 | `changelog-README.md` | `changelog/README.md` | Replace `OWNER/REPO` with the real GitHub repo (`gh repo view --json nameWithOwner`). Adjust the "when to add" list to the project. |
 | `check_changelog_entries.py` | `scripts/check_changelog_entries.py` | Nothing. It uses only the standard library and works from any directory. |
+| `pre-commit` | `.githooks/pre-commit` (`chmod +x`) | Nothing. Use it only if the repo has no hook manager (see below). |
 
-Then:
-- Add a short "Docs and changelog" rule to the repo's agent file (`CLAUDE.md` or
-  `AGENTS.md`): a change updates its doc in the same PR, significant changes add
-  one entry file, and nobody appends to `CHANGELOG.md`.
-- If the repo already uses pre-commit or CI, wire the checker into it. If not,
-  say so and offer it. Don't add a CI system just for this.
-- Add first entries only for significant changes that already shipped and have
-  real PR links. Don't invent history.
+### Agent file: `AGENTS.md`, with `CLAUDE.md` as a symlink
+
+`AGENTS.md` is read by every coding agent: Codex, Cursor, Gemini, Copilot and
+Claude Code. Keep one source of truth:
+
+- **Neither file exists:** create `AGENTS.md`, then `ln -s AGENTS.md CLAUDE.md`.
+- **Only `CLAUDE.md` exists:** `git mv CLAUDE.md AGENTS.md`, then
+  `ln -s AGENTS.md CLAUDE.md`. Retitle the header so it addresses all agents and
+  says `CLAUDE.md` is a symlink. Update any references to `CLAUDE.md` in docs.
+- **Both exist as separate files:** don't merge them without asking. Add the
+  rule to `AGENTS.md` and mention that the two differ.
+- **Already a symlink:** edit `AGENTS.md` only.
+
+Then add a short "Docs and changelog" section to `AGENTS.md`:
+- **Before opening a PR**, decide on docs and the changelog for the whole branch.
+- A change updates its owning doc in the same PR.
+- Significant changes add one entry file. Nobody appends to `CHANGELOG.md`.
+- The pre-commit hook validates entries, and the section says how to enable it.
+
+Symlinks need `core.symlinks` on Windows. If the team develops on Windows, use
+a one-line `CLAUDE.md` containing `@AGENTS.md` instead.
+
+### Pre-commit check: validates the format, never demands an entry
+
+- **The repo already has a hook manager** (`.pre-commit-config.yaml`, husky,
+  lefthook): add a hook to it that runs `python3 scripts/check_changelog_entries.py`
+  when `CHANGELOG.md`, `changelog/` or the checker are staged. Don't add a second
+  hook system.
+- **No hook manager:** copy `assets/pre-commit` to `.githooks/pre-commit` and
+  `chmod +x` it. Git never turns on hooks from a clone by itself, so enable it:
+  - **If the repo has a `package.json`** (at the root or in an app folder) with
+    no `prepare` script: add
+    `"prepare": "git config core.hooksPath .githooks || true"`. Every
+    `pnpm install` / `npm install` then turns it on, and `|| true` keeps CI and
+    hosting builds from failing.
+  - **Otherwise:** put `git config core.hooksPath .githooks` (once per clone)
+    in the README or `AGENTS.md` setup section.
+- **Test it.** Run `git config core.hooksPath .githooks`, stage a deliberately
+  bad entry and commit. The commit must be rejected. Then unstage and delete the
+  bad file.
+- **CI:** if the repo already runs CI on PRs, add the checker as a step there.
+  Don't add a CI system just for this.
+
+Add first entries only for significant changes that already shipped and have
+real PR links. Don't invent history.
 
 ## 3. Update the docs that own the change
 
@@ -73,7 +113,7 @@ For each owner found in step 1, edit it so it is true after this change.
 | Deploys, infra, environments, env vars, DNS, rollback | the infra README and a runbook |
 | An operational procedure (cutover, recovery, rotation) | a runbook with checklists and exact commands |
 | Architecture or a contract between services | the architecture doc for that area |
-| Stale guidance an agent would follow | the agent file (`CLAUDE.md` / `AGENTS.md`) |
+| Stale guidance an agent would follow | `AGENTS.md` (edit it, not the `CLAUDE.md` symlink) |
 
 - **No owner yet?** Create one next to similar docs and link it from the nearest
   index or README. A doc nobody can find doesn't exist.
@@ -135,6 +175,9 @@ One short paragraph or a few bullets: what changed and why it matters.
   before merging.
 
 In a single-file style, add one line under the right `Unreleased` heading.
+
+If the repo has no changelog at all and this change qualifies, run step 2
+first and tell the user you set it up.
 
 ## 5. Verify, then hand off
 

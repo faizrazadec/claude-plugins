@@ -27,5 +27,7 @@ Then invoke in any repo:
 - **docsmith**: keeps docs and the changelog current with every significant
   change. It finds the repo's existing doc owners and changelog style and
   follows them. In a repo without a convention, `setup` adds one-file-per-change
-  changelog entries (no merge conflicts) and a validator script. It checks
+  changelog entries (no merge conflicts), a validator, and a pre-commit hook.
+  It makes `AGENTS.md` the agent guide, with `CLAUDE.md` as a symlink, so every
+  agent reads the same rules. It checks
   `.gitignore` before choosing a path, and never writes secret values into docs.
