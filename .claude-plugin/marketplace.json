@@ -7,7 +7,13 @@
     {
       "name": "testsmith",
       "source": "./plugins/testsmith",
-      "description": "Write tests for new/changed code — matches the repo's existing test conventions.",
+      "description": "Write tests for new/changed code \u2014 matches the repo's existing test conventions.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "docsmith",
+      "source": "./plugins/docsmith",
+      "description": "Keep docs and the changelog current with every significant change. Discovers the repo's existing conventions, or sets up one-file-per-change changelog entries.",
       "version": "1.0.0"
     }
   ]
