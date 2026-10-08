@@ -31,3 +31,5 @@ Then invoke in any repo:
   It makes `AGENTS.md` the agent guide, with `CLAUDE.md` as a symlink, so every
   agent reads the same rules. It checks
   `.gitignore` before choosing a path, and never writes secret values into docs.
+  Its hook blocks the first `gh pr create` on each branch until the agent has
+  run `document-change`, so docs get decided before every PR; the retry passes.
